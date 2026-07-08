@@ -2,7 +2,7 @@ use crate::event::{AppEvent, Event, EventHandler};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::DefaultTerminal;
 use crate::config; 
-use crate::chat::{Conversation}; 
+use crate::chat::{Conversation, Platform, Message}; 
 
 #[derive(Debug)]
 pub enum Screen{
@@ -56,7 +56,29 @@ impl Default for App {
 impl App {
     /// Constructs a new instance of [`App`].
     pub fn new() -> Self {
-        Self::default()
+        let mut app = Self::default();
+        
+            app.conversations = vec![
+            Conversation {
+                platform: Platform::Whatsapp,
+                user: "Alice".to_string(),
+                messages: vec![
+                    Message { from_me: false, content: "Hey!".to_string(), timestamp: "10:00".to_string() },
+                    Message { from_me: true,  content: "Hi Alice!".to_string(), timestamp: "10:01".to_string() },
+                    Message { from_me: false, content: "How are you?".to_string(), timestamp: "10:02".to_string() },
+                ],
+            },
+            Conversation {
+                platform: Platform::Discord,
+                user: "Bob".to_string(),
+                messages: vec![
+                    Message { from_me: false, content: "yo".to_string(), timestamp: "11:00".to_string() },
+                    Message { from_me: true,  content: "hey bob".to_string(), timestamp: "11:01".to_string() },
+                ],
+            },
+        ];
+        
+        app
     }
 
     /// Run the application's main loop.
@@ -111,14 +133,12 @@ impl App {
                 KeyCode::Esc => self.screen = Screen::Main, 
                 _ => {}
             }, 
-            Screen::Whatsapp => match key_event.code{
-                KeyCode::Esc => self.screen = Screen::Main, 
+            Screen::Whatsapp | Screen::AllChats => match key_event.code{
+                KeyCode::Esc => self.screen = Screen::Main,
+                KeyCode::Up | KeyCode::Char('k') => self.prev_conv(),
+                KeyCode::Down | KeyCode::Char('j') => self.next_conv(),
                 _ => {}
             },
-            Screen::AllChats => match key_event.code{
-                KeyCode::Esc => self.screen = Screen::Main, 
-                _ => {}
-            }, 
             Screen::Messages => match key_event.code{
                 KeyCode::Esc => self.screen = Screen::Main, 
                 _ => {}
@@ -126,7 +146,22 @@ impl App {
         }
         Ok(())
     }
+   
+    pub fn next_conv(&mut self){
+        let max = self.conversations.len().saturating_sub(1); 
+        self.active_conv = Some( match self.active_conv{
+            None => 0, 
+            Some(i) => (i+1).min(max), 
+        }); 
+    }
     
+    pub fn prev_conv(&mut self){
+        self.active_conv = Some( match self.active_conv{
+            None => 0, 
+            Some(i) => i.saturating_sub(1), 
+        }); 
+    }
+
     /// Order { CC, Discord, Whatsapp, Messages}
     pub fn select_menu_item(&mut self, reverse: bool){
         self.selected = match self.selected{
@@ -164,6 +199,7 @@ impl App {
             _ => {}
         }
     }
+
     /// Handles the tick event of the terminal.
     ///
     /// The tick event is where you can update the state of your application with any logic that
