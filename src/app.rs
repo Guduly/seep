@@ -34,7 +34,8 @@ pub struct App {
     pub discord_token: String, 
     pub selected: MenuItem, 
     pub conversations: Vec<Conversation>, 
-    pub active_conv: Option<usize>, 
+    pub active_conv: Option<usize>,
+    pub message_input: String
 }
 
 impl Default for App {
@@ -48,7 +49,8 @@ impl Default for App {
             discord_token: String::new(), 
             selected: MenuItem::ContinueChats, 
             conversations: Vec::new(), 
-            active_conv: None
+            active_conv: None, 
+            message_input: String::new(), 
         }
     }
 }
@@ -116,6 +118,7 @@ impl App {
                     if !self.token_input.is_empty(){
                         config::save(&self.token_input)?;
                         self.discord_token = self.token_input.clone();
+                        self.token_input = "".to_string(); 
                         self.screen = Screen::Main;
                     }
                 },
@@ -137,6 +140,8 @@ impl App {
                 KeyCode::Esc => self.screen = Screen::Main,
                 KeyCode::Up | KeyCode::Char('k') => self.prev_conv(),
                 KeyCode::Down | KeyCode::Char('j') => self.next_conv(),
+                KeyCode::Char(c) => self.message_input.push(c), 
+                KeyCode::Backspace => {self.message_input.pop();}, 
                 _ => {}
             },
             Screen::Messages => match key_event.code{
