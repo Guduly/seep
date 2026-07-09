@@ -173,7 +173,7 @@ impl App {
             .render(right_chunks[0], buf);
 
         // input box
-        Paragraph::new(self.token_input.as_str())
+        Paragraph::new(self.message_input.as_str())
             .block(
                 Block::bordered()
                     .title("Type a message...")
@@ -182,7 +182,6 @@ impl App {
             .fg(Color::Yellow)
             .bg(Color::Black)
             .render(right_chunks[1], buf);
-
 
     }
 

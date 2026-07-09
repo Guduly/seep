@@ -1,1 +1,4 @@
-/target
+target/
+whatsapp/whatsapp
+whatsapp/session.db
+whatsapp/*.db
