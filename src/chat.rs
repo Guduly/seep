@@ -16,7 +16,8 @@ pub struct Message{
 pub struct Conversation{
     pub platform: Platform, 
     pub user: String,
-    pub messages: Vec<Message>, 
+    pub messages: Vec<Message>,
+    pub jid: String, 
 }
 
 
