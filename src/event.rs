@@ -37,13 +37,14 @@ pub enum AppEvent {
     Decrement,
     /// Quit the application.
     Quit,
+    ContactsLoaded(Vec<crate::bridge::Contact>), 
 }
 
 /// Terminal event handler.
 #[derive(Debug)]
 pub struct EventHandler {
     /// Event sender channel.
-    sender: mpsc::UnboundedSender<Event>,
+    pub sender: mpsc::UnboundedSender<Event>,
     /// Event receiver channel.
     receiver: mpsc::UnboundedReceiver<Event>,
 }

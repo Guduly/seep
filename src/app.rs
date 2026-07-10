@@ -59,7 +59,8 @@ impl App {
     /// Constructs a new instance of [`App`].
     pub fn new() -> Self {
         let mut app = Self::default();
-        
+       
+        /*
             app.conversations = vec![
             Conversation {
                 platform: Platform::Whatsapp,
@@ -69,6 +70,7 @@ impl App {
                     Message { from_me: true,  content: "Hi Alice!".to_string(), timestamp: "10:01".to_string() },
                     Message { from_me: false, content: "How are you?".to_string(), timestamp: "10:02".to_string() },
                 ],
+                _ => {}
             },
             Conversation {
                 platform: Platform::Discord,
@@ -77,9 +79,10 @@ impl App {
                     Message { from_me: false, content: "yo".to_string(), timestamp: "11:00".to_string() },
                     Message { from_me: true,  content: "hey bob".to_string(), timestamp: "11:01".to_string() },
                 ],
+                
             },
         ];
-        
+        */
         app
     }
 
@@ -101,6 +104,16 @@ impl App {
                     AppEvent::Increment => self.increment_counter(),
                     AppEvent::Decrement => self.decrement_counter(),
                     AppEvent::Quit => self.quit(),
+                    AppEvent::ContactsLoaded(contacts) => {
+                        self.conversations = contacts.iter().map(|c|{
+                            Conversation{
+                                platform: Platform::Whatsapp, 
+                                user: c.name.clone(), 
+                                messages: vec![],
+                                jid : c.jid.clone(),
+                            }
+                        }).collect(); 
+                        }
                 },
             }
         }
@@ -198,11 +211,29 @@ impl App {
                 if self.discord_token.is_empty() {self.screen = Screen::Login;}
                 else {self.screen = Screen::Discord;} 
             },
-            MenuItem::Whatsapp => self.screen = Screen::Whatsapp, 
+            MenuItem::Whatsapp => {
+                self.screen = Screen::Whatsapp;
+                self.load_whatsapp_contacts();
+            }
             MenuItem::Messages => {}, 
             MenuItem::ContinueChats => self.screen = Screen::AllChats, 
             _ => {}
         }
+    }
+
+    pub fn load_whatsapp_contacts(&mut self){
+        let sender = self.events.sender.clone();
+
+        tokio::spawn(async move {
+            match crate::bridge::get_contacts().await{
+                Ok(contacts) => {
+                    let _ = sender.send(
+                        crate::event::Event::App(crate::event::AppEvent::ContactsLoaded(contacts))
+                        ); 
+                }, 
+                Err(e) => eprintln!("Failed to load contacts: {}", e),
+            }
+        }); 
     }
 
     /// Handles the tick event of the terminal.
