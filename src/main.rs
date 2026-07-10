@@ -5,7 +5,7 @@ pub mod app;
 pub mod event;
 pub mod ui;
 pub mod config; 
-
+pub mod bridge; 
 
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {
