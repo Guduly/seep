@@ -67,11 +67,10 @@ impl App {
             match self.events.next().await? {
                 Event::Tick => {}
                 Event::Crossterm(event) => {
-                    if let crossterm::event::Event::Key(key_event) = event {
-                        if key_event.kind == crossterm::event::KeyEventKind::Press {
+                    if let crossterm::event::Event::Key(key_event) = event
+                        && key_event.kind == crossterm::event::KeyEventKind::Press {
                             self.handle_key_events(key_event)?;
                         }
-                    }
                 }
                 Event::App(app_event) => match app_event {
                     AppEvent::Quit => self.quit(),
@@ -114,14 +113,13 @@ impl App {
                     self.token_input.pop();
                 }
                 KeyCode::Esc => self.events.send(AppEvent::Quit),
-                KeyCode::Enter => {
-                    if !self.token_input.is_empty() {
+                KeyCode::Enter
+                    if !self.token_input.is_empty() => {
                         config::save(&self.token_input)?;
                         self.discord_token = self.token_input.clone();
                         self.token_input.clear();
                         self.screen = Screen::Main;
                     }
-                }
                 _ => {}
             },
             Screen::Main => match key_event.code {
@@ -131,10 +129,7 @@ impl App {
                 KeyCode::Enter => self.select_current(),
                 _ => {}
             },
-            Screen::Discord => match key_event.code {
-                KeyCode::Esc => self.screen = Screen::Main,
-                _ => {}
-            },
+            Screen::Discord => if key_event.code == KeyCode::Esc { self.screen = Screen::Main },
             Screen::Whatsapp | Screen::AllChats => match key_event.code {
                 KeyCode::Esc => self.screen = Screen::Main,
                 KeyCode::Up => self.prev_conv(),
@@ -146,10 +141,7 @@ impl App {
                 }
                 _ => {}
             },
-            Screen::Messages => match key_event.code {
-                KeyCode::Esc => self.screen = Screen::Main,
-                _ => {}
-            },
+            Screen::Messages => if key_event.code == KeyCode::Esc { self.screen = Screen::Main },
         }
         Ok(())
     }
