@@ -1,7 +1,7 @@
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
-use tokio::net::UnixStream;
 use crate::event::Event::App;
 use serde::{Deserialize, Serialize};
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::net::UnixStream;
 
 const COMMAND_SOCK: &str = "/tmp/seep-bridge.sock";
 const PUSH_SOCK: &str = "/tmp/seep-push.sock";
@@ -79,13 +79,11 @@ pub async fn subscribe_messages(sender: tokio::sync::mpsc::UnboundedSender<crate
                 Ok(0) | Err(_) => break, // 0 bytes = connection closed cleanly
                 Ok(_) => {
                     if let Ok(msg) = serde_json::from_str::<IncomingMessage>(&line) {
-                        let _ = sender.send(App(
-                            crate::event::AppEvent::MessageReceived {
-                                from: msg.from,
-                                text: msg.text,
-                                timestamp: msg.timestamp,
-                            },
-                        ));
+                        let _ = sender.send(App(crate::event::AppEvent::MessageReceived {
+                            from: msg.from,
+                            text: msg.text,
+                            timestamp: msg.timestamp,
+                        }));
                     }
                 }
             }

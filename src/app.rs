@@ -72,7 +72,7 @@ impl App {
                             self.handle_key_events(key_event)?;
                         }
                     }
-                }, 
+                }
                 Event::App(app_event) => match app_event {
                     AppEvent::Quit => self.quit(),
                     AppEvent::ContactsLoaded(contacts) => {
@@ -87,7 +87,11 @@ impl App {
                             .collect();
                         self.contact_scroll = 0;
                     }
-                    AppEvent::MessageReceived { from, text, timestamp } => {
+                    AppEvent::MessageReceived {
+                        from,
+                        text,
+                        timestamp,
+                    } => {
                         if let Some(conv) = self.conversations.iter_mut().find(|c| c.jid == from) {
                             conv.messages.push(Message {
                                 from_me: false,
@@ -106,7 +110,9 @@ impl App {
         match self.screen {
             Screen::Login => match key_event.code {
                 KeyCode::Char(c) => self.token_input.push(c),
-                KeyCode::Backspace => { self.token_input.pop(); }
+                KeyCode::Backspace => {
+                    self.token_input.pop();
+                }
                 KeyCode::Esc => self.events.send(AppEvent::Quit),
                 KeyCode::Enter => {
                     if !self.token_input.is_empty() {
@@ -135,7 +141,9 @@ impl App {
                 KeyCode::Down => self.next_conv(),
                 KeyCode::Enter => self.send_current_message(),
                 KeyCode::Char(c) => self.message_input.push(c),
-                KeyCode::Backspace => { self.message_input.pop(); }
+                KeyCode::Backspace => {
+                    self.message_input.pop();
+                }
                 _ => {}
             },
             Screen::Messages => match key_event.code {
@@ -163,10 +171,34 @@ impl App {
 
     pub fn select_menu_item(&mut self, reverse: bool) {
         self.selected = match self.selected {
-            MenuItem::ContinueChats => if reverse { MenuItem::Messages } else { MenuItem::Discord },
-            MenuItem::Discord => if reverse { MenuItem::ContinueChats } else { MenuItem::Whatsapp },
-            MenuItem::Whatsapp => if reverse { MenuItem::Discord } else { MenuItem::Messages },
-            MenuItem::Messages => if reverse { MenuItem::Whatsapp } else { MenuItem::ContinueChats },
+            MenuItem::ContinueChats => {
+                if reverse {
+                    MenuItem::Messages
+                } else {
+                    MenuItem::Discord
+                }
+            }
+            MenuItem::Discord => {
+                if reverse {
+                    MenuItem::ContinueChats
+                } else {
+                    MenuItem::Whatsapp
+                }
+            }
+            MenuItem::Whatsapp => {
+                if reverse {
+                    MenuItem::Discord
+                } else {
+                    MenuItem::Messages
+                }
+            }
+            MenuItem::Messages => {
+                if reverse {
+                    MenuItem::Whatsapp
+                } else {
+                    MenuItem::ContinueChats
+                }
+            }
         };
     }
 

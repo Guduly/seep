@@ -1,11 +1,11 @@
 use crate::app::{App, Screen};
 use std::process::Command;
-pub mod chat;
 pub mod app;
+pub mod bridge;
+pub mod chat;
+pub mod config;
 pub mod event;
 pub mod ui;
-pub mod config;
-pub mod bridge;
 
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {
@@ -15,7 +15,11 @@ async fn main() -> color_eyre::Result<()> {
     let whatsapp_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("whatsapp");
 
     let bridge_path = [
-        std::env::current_exe().unwrap().parent().unwrap().to_path_buf(),
+        std::env::current_exe()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .to_path_buf(),
         whatsapp_dir.clone(),
     ]
     .iter()
