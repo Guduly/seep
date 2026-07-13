@@ -62,6 +62,7 @@ async fn main() -> color_eyre::Result<()> {
             app.screen = Screen::Main;
         }
     }
+
     let result = app.run(terminal).await;
     ratatui::restore();
     result
