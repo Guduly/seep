@@ -35,7 +35,7 @@ var client *whatsmeow.Client
 
 func main() {
 	// setup database to store session
-	dbLog := waLog.Stdout("Database", "ERROR", true)
+	dbLog := waLog.Noop
 	container, err := sqlstore.New(context.Background(), "sqlite3", "file:session.db?_foreign_keys=on&_busy_timeout=5000", dbLog)
 	if err != nil {
 		panic(err)
@@ -48,10 +48,9 @@ func main() {
 	}
 
 	// create whatsapp client
-	clientLog := waLog.Stdout("Client", "ERROR", true)
+	clientLog := waLog.Noop
 	client = whatsmeow.NewClient(deviceStore, clientLog)
 
-	// login
 		// login
 	if client.Store.ID == nil {
 			// first run - show QR code
@@ -80,8 +79,9 @@ func main() {
 					panic(err)
 			}
 	}
-	fmt.Println("Connected to WhatsApp!")
 
+	redirectOutput()
+  os.WriteFile("/tmp/seep-ready", []byte("ready"), 0644)
 	// start listening for commands from Rust
 	listenForCommands()
 }
@@ -96,8 +96,6 @@ func listenForCommands() {
 		panic(err)
 	}
 	defer listener.Close()
-
-	fmt.Println("Bridge ready, waiting for commands...")
 
 	for {
 		conn, err := listener.Accept()
@@ -114,44 +112,31 @@ func handleConnection(conn net.Conn) {
 
     for scanner.Scan() {
         line := scanner.Text()
-        fmt.Println("Received command:", line)  // ← add this
         var cmd Command
         if err := json.Unmarshal([]byte(line), &cmd); err != nil {
-            fmt.Println("JSON error:", err)  // ← and this
             continue
         }
-        fmt.Println("Parsed action:", cmd.Action, "to:", cmd.To)  // ← and this
         switch cmd.Action {
         case "send":
             sendMessage(cmd.To, cmd.Text)
 				case  "get_contacts": 
 						data,err := getContacts()
 						if err != nil{
-							fmt.Println("Error Getting Contacts", err)
 							continue
 						}
 						conn.Write(append(data, '\n'))
         }
     }
-    fmt.Println("Scanner error:", scanner.Err())  // ← and this
 }
 
 func sendMessage(to, text string) {
-    fmt.Println("Attempting to send to:", to)  // ← add this
     jid, err := types.ParseJID(to)
     if err != nil {
-        fmt.Println("Invalid JID:", err)
         return
     }
-    fmt.Println("Sending message...")  // ← add this
     _, err = client.SendMessage(context.Background(), jid, &waE2E.Message{
         Conversation: &text,
     })
-    if err != nil {
-        fmt.Println("Send error:", err)  // ← add this
-    } else {
-        fmt.Println("Message sent successfully!")
-    }
 }
 
 func getContacts() ([] byte, error){
@@ -183,4 +168,13 @@ func getContacts() ([] byte, error){
 	}
 
 	return json.Marshal(result)
+}
+
+func redirectOutput() {
+    logFile, err := os.OpenFile("/tmp/seep-bridge.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+    if err != nil {
+        return
+    }
+    os.Stdout = logFile
+    os.Stderr = logFile
 }

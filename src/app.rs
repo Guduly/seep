@@ -151,8 +151,8 @@ impl App {
             }, 
             Screen::Whatsapp | Screen::AllChats => match key_event.code{
                 KeyCode::Esc => self.screen = Screen::Main,
-                KeyCode::Up | KeyCode::Char('k') => self.prev_conv(),
-                KeyCode::Down | KeyCode::Char('j') => self.next_conv(),
+                KeyCode::Up => self.prev_conv(),
+                KeyCode::Down => self.next_conv(),
                 KeyCode::Char(c) => self.message_input.push(c), 
                 KeyCode::Backspace => {self.message_input.pop();}, 
                 _ => {}
