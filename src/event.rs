@@ -30,6 +30,12 @@ pub struct EventHandler {
     receiver: mpsc::UnboundedReceiver<Event>,
 }
 
+impl Default for EventHandler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EventHandler {
     pub fn new() -> Self {
         let (sender, receiver) = mpsc::unbounded_channel();

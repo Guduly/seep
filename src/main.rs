@@ -60,12 +60,11 @@ async fn main() -> color_eyre::Result<()> {
 
     let terminal = ratatui::init();
     let mut app = App::new();
-    if let Some(config) = config::load() {
-        if !config.discord_token.is_empty() {
+    if let Some(config) = config::load()
+        && !config.discord_token.is_empty() {
             app.discord_token = config.discord_token;
             app.screen = Screen::Main;
         }
-    }
 
     let result = app.run(terminal).await;
     ratatui::restore();
